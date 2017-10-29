@@ -4,7 +4,7 @@ from bokeh.models import ColumnDataSource, LabelSet
 from numpy import pi
 
 def share_to_angle(share):
-    return (share/100) * (2*pi)
+    return share/100 * 2*pi
 
 with open('election.json') as data_file:    
     data = json.load(data_file)
@@ -47,16 +47,28 @@ labels = LabelSet(x='x', text='label', level='glyph', y_offset=0, x_offset=-13.5
 p = figure(x_range = (-1, len(new_data)))
 p.vbar(color='colors', x='x', top='top', bottom=0, width=0.7, source = source)
 p.add_layout(labels)
-show(p)
+#show(p)
 
 
 #PART 3
+start = []
+end = []
+percents = [0]
+sum_percent = 0
 for party in new_data:
-    print(share_to_angle(party.get('share')))
+    share = party.get('share')
+    sum_percent += share
+    percents.append(sum_percent)
+
+percents.append(1)
+
+start = [share_to_angle(share) for share in percents[:-1]]
+end = [share_to_angle(share) for share in percents[1:]]
+
 
 angle_source = ColumnDataSource(data = {
-    'start': [],
-    'end':[],
+    'start': start,
+    'end': end,
     'color': new_colors,
     'label': new_labels
 })
@@ -64,10 +76,11 @@ p = figure()
 p.wedge(
     x = 0,
     y = 0,
-    radius = 5,
+    radius = 1,
     start_angle = 'start',
     end_angle = 'end',
     color = 'color',
     legend = 'label',
     source = angle_source
 )
+show(p)
