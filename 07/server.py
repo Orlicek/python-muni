@@ -26,10 +26,32 @@ WHERE score.id = ?"""
 
 
 class MineBaseHTTPRequestHandler(BaseHTTPRequestHandler):
+    print_partial = "<b>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp Partiture: </b>%s"
+    score_partial = """<b>&nbsp&nbsp&nbsp&nbsp Genre: </b>%s</br>
+        <b>&nbsp&nbsp&nbsp&nbsp Key: </b>%s</br>
+        <b>&nbsp&nbsp&nbsp&nbsp Incipit: </b>%s</br>
+        <b>&nbsp&nbsp&nbsp&nbsp Year: </b>%s</br>
+        <b>&nbsp&nbsp&nbsp&nbsp Prints: </b></br>%s</br>
+    """
+    composer_partial = """<b>Name: </b>%s</br>
+        <b>Scores: </b></br>%s</br>
+    """
+    form = """<form action="./result" method="get">
+        <input type="text" name="q" value=""></input>
+        <input type="hidden" name="f" value="html"></input>
+        <input type="submit" value="Submit" /> 
+    </form>
+    """
     def do_GET(self):
         path = urlparse(self.path).path
         query = parse_qs(urlparse(self.path).query)
-        if path == '/result':
+        if path == '/':
+            self.send_response(200, "OK")
+            self.send_header('Content-type','text-html')
+            self.end_headers()
+            self.wfile.write(bytes(self.form, encoding='UTF-8'))
+
+        elif path == '/result':
             search = query.get('q')
             if search:
                 search = search[0]
@@ -42,29 +64,37 @@ class MineBaseHTTPRequestHandler(BaseHTTPRequestHandler):
                 self.send_response(200, "OK")
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
-                #output = json.dump(composer_list)
                 output = json.dumps(composer_list)
                 self.wfile.write(bytes(output, encoding='UTF-8'))
                 return
             elif resp_type == 'html':
-                try:
-                    with open("./search_partial.html") as seach_partial:
-                        self.send_response(200, "OK")
-                        partial = search_partial.read()
-                        self.send_header('Content-type','text-html')
-                        self.end_headers()
-                        score = ""
-                        for composer in composer_list:
-                            partial.format(
-                                composer.get('composer'),
-                                composer.get('')
-                            
-                        self.wfile.write(bytes(main_page, encoding='UTF-8'))
-                        main_page.close()
-                        return
-                except IOError:
-                    self.send_error(404, 'Main page not found')
-                    pass
+                output_html = ""
+                self.send_response(200, "OK")
+                self.send_header('Content-type','text-html')
+                self.end_headers()
+                for composer in composer_list:
+                    name = composer.get('composer'),
+                    scores = composer.get('scores')
+                    score_html = '' 
+                    for score in scores:
+                        prints = score.get('print')
+                        print_html = ''
+                        for one_print in prints:
+                            print_html += self.print_partial%one_print.get('partiture')
+                        score_html += self.score_partial%(
+                            score.get('genre'),
+                            score.get('key'),
+                            score.get('incipit'),
+                            score.get('year'),
+                            print_html
+                        ) 
+                    output_html += self.composer_partial%(
+                        composer.get('composer'),
+                        score_html
+                    )
+                                    
+                self.wfile.write(bytes(output_html, encoding='UTF-8'))
+                return
         return
 
 
