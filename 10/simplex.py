@@ -18,11 +18,9 @@ def volume(array, *args):
     matrix = []
     for point in array[:-1]:
         matrix.append(np.subtract(point, last_point))
-    det = np.linalg.det(matrix)
+    det = np.absolute(np.linalg.det(matrix))
     fac_dim = np.math.factorial(dimension-1)
     return det/fac_dim
-
-
 
 
 
@@ -40,12 +38,11 @@ class VolumeTest(TestCase):
         self.assertEqual(vol, self.vol_triangle(1, 1))
 
     def test_simple_triangle(self):
-        n_simplex = [[1, 1], [4, 1], [3, 0]]
+        n_simplex = [[1, 1], [4, 1], [1, 3]]
         vol = volume(n_simplex)
         a = 2
         b = 3
         self.assertEqual(vol, self.vol_triangle(a, b))
-
 
     def test_simple_tetrahedron(self):
         n_simplex = [[0, 0, 0], [0, 1, 0], [0, 0, 1], [1, 0, 0]] 
@@ -70,18 +67,18 @@ class VolumeTest(TestCase):
 
     def test_wrong_points_triangle(self):
         n_simplex = [[1, 1, 0], [2, 4, 1], [5, 4 ,2]]
-        self.assertRaises(volume(n_simplex), ValueError())
+        self.assertRaises(ValueError, volume, n_simplex)
 
     def test_wrong_dimension(self):
         n_simplex = [[1, 2], [1, 4], [2, 5], [3, 5]]
-        self.assertRaises(volume(n_simplex), ValueError())
+        self.assertRaises(ValueError, volume, n_simplex)
 
     def test_str_in_point(self):
         n_simplex = [['s', 3], ['y', 4]]
-        self.assertRaises(volume(n_simplex), ValueError())
+        self.assertRaises(ValueError, volume, n_simplex)
 
     def not_array_of_array(self):
         n_simplex = [1, 2, 3]
-        self.assertRaises(volume(n_simplex), ValueError())
+        self.assertRaises(ValueError, volume, n_simplex)
 
 

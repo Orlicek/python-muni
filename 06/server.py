@@ -24,7 +24,6 @@ class MineBaseHTTPRequestHandler(BaseHTTPRequestHandler):
                     self.send_header('Content-type','text-html')
                     self.end_headers()
                     self.wfile.write(bytes(main_page, encoding='UTF-8'))
-                    main_page.close()
                     return
             except IOError:
                 self.send_error(404, 'Main page not found')
